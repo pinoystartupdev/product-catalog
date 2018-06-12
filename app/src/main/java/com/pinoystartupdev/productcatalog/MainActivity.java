@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
 
     List<DataWrapper> dataWrapperList;
 
-    int currentPage = 1;
+    int currentPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,23 +54,33 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
 
         ButterKnife.bind(this);
 
+        // initialize fields here
+        dataWrapperList = new ArrayList<>();
+        myCarsCallback = new MyCarsCallback();
+        currentPage = 1;
+
+        // set up tool bar here
         setSupportActionBar(toolbarMainActivity);
         getSupportActionBar().setTitle("Product Catalog");
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
-        dataWrapperList = new ArrayList<>();
-        myCarsCallback = new MyCarsCallback();
 
+        // set up adapter for recycleview here
         FeedRecyclerViewAdapter feedRecyclerViewAdapter = new FeedRecyclerViewAdapter(getApplicationContext(), dataWrapperList);
+
+        // set up recycler view here
         recyclerViewFeed.setAdapter(feedRecyclerViewAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerViewFeed.setLayoutManager(linearLayoutManager);
 
+        // add infinite scroll listener
         recyclerViewFeed.addOnScrollListener(new MyInfiniteScrollListener (this));
 
+        // perform network request, then update dataWrapperList field and recyclerViewFeed
         new NetworkRequest().requestCarsAPI(currentPage, new MyCarsCallback());
 
+        // set up pull to refresh here
         swipeRefreshLayout.setOnRefreshListener(new MySwipeRefressListener());
     }
 
@@ -99,6 +109,10 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
         return super.onOptionsItemSelected(item);
     }
 
+    /*
+    * there seems duplicity at class MyInfiniteScrollListener..., class MyCarsCallback..., class MySwipeRefressListener..., re handling of network request.
+    * May I suggest having a middle man that handles the incoming/outgoing data and an interface for it so that the UI can respond to these events.
+    * */
 
     @Override
     public void beforeLoadingNextItems() {
@@ -128,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
                 public void onResponse(Call<Cars> call, Response<Cars> response) {
                     swipeRefreshLayout.setRefreshing(false);
 
+                    // serialize the response, then save via SharedPreference for offline functionality
                     MySharedPreferenceHandler.saveSharedSetting(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED, String.valueOf(new Gson().toJson(response.body())));
 
                     dataWrapperList.addAll(response.body().getMetadata().getDataWrapperList());
@@ -146,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
     class MyCarsCallback implements Callback<Cars> {
         @Override
         public void onResponse(Call<Cars> call, Response<Cars> response) {
+            // serialize the response, then save via SharedPreference for offline functionality
+
             MySharedPreferenceHandler.saveSharedSetting(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED, String.valueOf(new Gson().toJson(response.body())));
 
             dataWrapperList.addAll(response.body().getMetadata().getDataWrapperList());
@@ -155,6 +172,8 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
 
         @Override
         public void onFailure(Call<Cars> call, Throwable t) {
+            // check if SharedPreference has data, then use that data if it's available
+
             if (MySharedPreferenceHandler.hasPreference(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED)) {
                 String serializedResponseFromSharedPreference = MySharedPreferenceHandler.readSharedSetting(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED, null);
 
@@ -194,13 +213,19 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
                     {
                         loading = false;
 
+                        // last item reached, fire beforeLoadingNextItems()
+
                         infiniteScrollInterface.beforeLoadingNextItems();
+
+                        // perform operation (network request)
 
                         new NetworkRequest().requestCarsAPI(
                                 currentPage,
                                 new Callback<Cars>() {
                                     @Override
                                     public void onResponse(Call<Cars> call, Response<Cars> response) {
+                                        //fire successLoadingNextItems(T) if request was a success
+
                                         infiniteScrollInterface.successLoadingNextItems(response.body());
 
                                         loading = true;
@@ -208,6 +233,8 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
 
                                     @Override
                                     public void onFailure(Call<Cars> call, Throwable t) {
+                                        //fire failLoadingNextItems() if request was a failure
+
                                         infiniteScrollInterface.failLoadingNextItems();
                                     }
                                 }
