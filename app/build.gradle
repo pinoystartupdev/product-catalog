@@ -29,8 +29,7 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'de.hdodenhof:circleimageview:2.2.0'
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
 
     //see https://github.com/castorflex/SmoothProgressBar
     compile 'com.github.castorflex.smoothprogressbar:library:1.0.0'
