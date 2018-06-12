@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
         // set up adapter for recycleview here
-        FeedRecyclerViewAdapter feedRecyclerViewAdapter = new FeedRecyclerViewAdapter(getApplicationContext(), dataWrapperList);
+        FeedRecyclerViewAdapter feedRecyclerViewAdapter = new FeedRecyclerViewAdapter(getApplicationContext(), dataWrapperList, new MyOnRowClickListener());
 
         // set up recycler view here
         recyclerViewFeed.setAdapter(feedRecyclerViewAdapter);
@@ -276,6 +276,14 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
                     }
                 }
             }
+        }
+    }
+
+    class MyOnRowClickListener implements FeedRecyclerViewAdapter.OnRowClickListener {
+
+        @Override
+        public void OnClickListner(View view, int position) {
+            Toast.makeText(getApplicationContext(), String.format("goto detailViewScreen @ position=%s", String.valueOf(position)), Toast.LENGTH_SHORT).show();
         }
     }
 }

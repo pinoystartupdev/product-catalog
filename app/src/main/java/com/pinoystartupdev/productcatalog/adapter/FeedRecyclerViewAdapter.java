@@ -22,10 +22,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class FeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    Context context;
-    List<DataWrapper> dataWrapperList;
+    private Context context;
+    private List<DataWrapper> dataWrapperList;
+    private OnRowClickListener onRowClickListener;
 
-    public FeedRecyclerViewAdapter(Context context,  List<DataWrapper> dataWrapperList) {
+    public FeedRecyclerViewAdapter(Context context, List<DataWrapper> dataWrapperList, OnRowClickListener onRowClickListener) {
         // use context of Application to avoid leaking of activity context
         if (context instanceof Application) {
             this.context = context;
@@ -34,9 +35,11 @@ public class FeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
         }
 
         this.dataWrapperList = dataWrapperList;
+        this.onRowClickListener = onRowClickListener;
     }
 
     public class FeedRecyclerViewViewHolder extends RecyclerView.ViewHolder {
+        int position;
         DataWrapper dataWrapper;
 
         @BindView(R.id.imageViewCoverPhoto)
@@ -58,7 +61,8 @@ public class FeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
             ButterKnife.bind(this, itemView);
         }
 
-        public void setDataWrapper(DataWrapper dataWrapper) {
+        public void setDataWrapper(int position, DataWrapper dataWrapper) {
+            this.position = position;
             this.dataWrapper = dataWrapper;
         }
 
@@ -74,6 +78,15 @@ public class FeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
                     .into(imageViewCoverPhoto);
 
             // todo, it might be good to display all images in a thumbnail just below the big image
+        }
+
+        public void setOnRowClickListener(final OnRowClickListener onRowClickListener) {
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onRowClickListener.OnClickListner(v, position);
+                }
+            });
         }
     }
 
@@ -91,13 +104,19 @@ public class FeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
         FeedRecyclerViewViewHolder feedRecyclerViewViewHolder = (FeedRecyclerViewViewHolder) holder;
         DataWrapper dataWrapper = dataWrapperList.get(position);
 
-        feedRecyclerViewViewHolder.setDataWrapper(dataWrapper);
+        feedRecyclerViewViewHolder.setDataWrapper(position, dataWrapper);
 
         feedRecyclerViewViewHolder.display();
+
+        feedRecyclerViewViewHolder.setOnRowClickListener(onRowClickListener);
     }
 
     @Override
     public int getItemCount() {
         return dataWrapperList.size();
+    }
+
+    public interface OnRowClickListener {
+        void OnClickListner(View view, int position);
     }
 }
