@@ -23,6 +23,7 @@ import com.pinoystartupdev.productcatalog.network.requests.cars.NetworkRequest;
 import com.pinoystartupdev.productcatalog.shared_prefrence.MySharedPreferenceHandler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -32,6 +33,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements InfiniteScrollInterface<Cars>{
+    public static final String CURRENT_DATA_WRAPPER_LIST_KEY = "com.pinoystartupdev.MainActivity.CURRENT_DATA_WRAPPER_LIST_KEY";
+    public static final String CURRENT_PAGE_KEY = "com.pinoystartupdev.MainActivity.CURRENT_PAGE_KEY";
+
     @BindView(R.id.toolbarMainActivity)
     Toolbar toolbarMainActivity;
 
@@ -64,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
         getSupportActionBar().setTitle("Product Catalog");
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
-
         // set up adapter for recycleview here
         FeedRecyclerViewAdapter feedRecyclerViewAdapter = new FeedRecyclerViewAdapter(getApplicationContext(), dataWrapperList);
 
@@ -77,12 +80,43 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
         // add infinite scroll listener
         recyclerViewFeed.addOnScrollListener(new MyInfiniteScrollListener (this));
 
-        // perform network request, then update dataWrapperList field and recyclerViewFeed
-        new NetworkRequest().requestCarsAPI(currentPage, new MyCarsCallback());
-
         // set up pull to refresh here
         swipeRefreshLayout.setOnRefreshListener(new MySwipeRefressListener());
+
+        // check if has savedInstance state, then use it if it's available
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(CURRENT_DATA_WRAPPER_LIST_KEY)) {
+                String serializedResponseFromBundle = savedInstanceState.getString(CURRENT_DATA_WRAPPER_LIST_KEY);
+                this.currentPage = savedInstanceState.getInt(CURRENT_PAGE_KEY);
+
+                DataWrapper[] dataWrappers = new Gson().fromJson(serializedResponseFromBundle, DataWrapper[].class);
+
+                List<DataWrapper> dataWrapperListFromBundle = Arrays.asList(dataWrappers);
+
+                dataWrapperList.addAll(dataWrapperListFromBundle);
+
+                recyclerViewFeed.getAdapter().notifyDataSetChanged();
+            } else {
+                // perform network request, then update dataWrapperList field and recyclerViewFeed
+                new NetworkRequest().requestCarsAPI(currentPage, new MyCarsCallback());
+            }
+        } else {
+            // perform network request, then update dataWrapperList field and recyclerViewFeed
+            new NetworkRequest().requestCarsAPI(currentPage, new MyCarsCallback());
+        }
     }
+
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save current dataWrapperList
+        outState.putString(CURRENT_DATA_WRAPPER_LIST_KEY, String.valueOf(new Gson().toJson(dataWrapperList)));
+
+        // Save currentPage
+        outState.putInt(CURRENT_PAGE_KEY, currentPage);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
