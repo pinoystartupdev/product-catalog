@@ -67,40 +67,13 @@ public class FeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
             textViewProductBrand.setText(dataWrapper.getData().getBrand());
             textViewProductPrice.setText(dataWrapper.getData().getPrice());
 
-//            if (onTimelineClickListener != null) {
-//                textViewProductName.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        onProductClick(view, userPOJO, productPOJO);
-//                    }
-//                });
-//            }
-//
             Picasso.get()
                     .load(dataWrapper.getImagesList().get(0).getUrl())
                     .resize(400, 300)
                     .centerCrop()
                     .into(imageViewCoverPhoto);
-//
-//            if (onTimelineClickListener != null) {
-//                imageViewCoverPhoto.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        onProductClick(view, userPOJO, productPOJO);
-//                    }
-//                });
-//            }
-//
-//            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
-//            ThumbnailRecyclerViewAdapter thumbnailRecyclerViewAdapter = new ThumbnailRecyclerViewAdapter(context, productPOJO.getImageResIdList());
-//
-//            if (onTimelineClickListener != null) {
-//                thumbnailRecyclerViewAdapter.setThumbnailCallback(this);
-//            }
-//
-//            recyclerViewThumbnails.setLayoutManager(linearLayoutManager);
-//            recyclerViewThumbnails.setAdapter(thumbnailRecyclerViewAdapter);
 
+            // todo, it might be good to display all images in a thumbnail just below the big image
         }
     }
 

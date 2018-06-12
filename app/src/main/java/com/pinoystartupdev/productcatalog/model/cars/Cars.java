@@ -13,12 +13,4 @@ public class Cars {
     public Metadata getMetadata() {
         return metadata;
     }
-
-//    class Metadata {
-//        @SerializedName("product_count") int productCount;
-//
-//        public int getProductCount() {
-//            return productCount;
-//        }
-//    }
 }
