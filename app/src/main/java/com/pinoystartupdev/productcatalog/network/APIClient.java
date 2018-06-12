@@ -1,4 +1,4 @@
-package com.pinoystartupdev.productcatalog.network_interface;
+package com.pinoystartupdev.productcatalog.network;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
