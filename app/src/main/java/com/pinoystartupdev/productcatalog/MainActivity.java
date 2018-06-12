@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.pinoystartupdev.productcatalog.adapter.FeedRecyclerViewAdapter;
 import com.pinoystartupdev.productcatalog.model.cars.Cars;
 import com.pinoystartupdev.productcatalog.model.cars.DataWrapper;
@@ -19,6 +20,7 @@ import com.pinoystartupdev.productcatalog.network.APIClient;
 import com.pinoystartupdev.productcatalog.network.requests.CarsNetworkInterface;
 import com.pinoystartupdev.productcatalog.network.InfiniteScrollInterface;
 import com.pinoystartupdev.productcatalog.network.requests.cars.NetworkRequest;
+import com.pinoystartupdev.productcatalog.shared_prefrence.MySharedPreferenceHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
                 public void onResponse(Call<Cars> call, Response<Cars> response) {
                     swipeRefreshLayout.setRefreshing(false);
 
+                    MySharedPreferenceHandler.saveSharedSetting(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED, String.valueOf(new Gson().toJson(response.body())));
+
                     dataWrapperList.addAll(response.body().getMetadata().getDataWrapperList());
 
                     recyclerViewFeed.getAdapter().notifyDataSetChanged();
@@ -142,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
     class MyCarsCallback implements Callback<Cars> {
         @Override
         public void onResponse(Call<Cars> call, Response<Cars> response) {
+            MySharedPreferenceHandler.saveSharedSetting(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED, String.valueOf(new Gson().toJson(response.body())));
+
             dataWrapperList.addAll(response.body().getMetadata().getDataWrapperList());
 
             recyclerViewFeed.getAdapter().notifyDataSetChanged();
@@ -149,7 +155,17 @@ public class MainActivity extends AppCompatActivity implements InfiniteScrollInt
 
         @Override
         public void onFailure(Call<Cars> call, Throwable t) {
-            //TODO handle failed response here
+            if (MySharedPreferenceHandler.hasPreference(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED)) {
+                String serializedResponseFromSharedPreference = MySharedPreferenceHandler.readSharedSetting(getApplicationContext(), MySharedPreferenceHandler.MainFeedSharedPreference.SHARED_PREFERENCE_KEY_MAIN_FEED, null);
+
+                Cars cars = new Gson().fromJson(serializedResponseFromSharedPreference, Cars.class);
+
+                dataWrapperList.addAll(cars.getMetadata().getDataWrapperList());
+
+                recyclerViewFeed.getAdapter().notifyDataSetChanged();
+            } else {
+                //TODO handle failed response here
+            }
         }
     }
 
